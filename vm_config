@@ -1,0 +1,89 @@
+{
+"host_forward_ip":"10.147.28.50",
+"nodes": {
+"driverVM": {
+"node": "driverVM",
+"ip": "10.147.28.144",
+"host": "cobbler.hyd.automation.com",
+"mac":"00:16:3e:77:4d:96",
+"ports": [
+        {
+"host": 22,
+"guest": 22,
+"id": "ssh"
+        },
+        {
+"host": 7709,
+"guest": 7709,
+"id": "puppet-server"
+        },
+        {
+"host": 9090,
+"guest": 9090,
+"id": "cobbler-server"
+        },
+       {
+"host": 7708,
+"guest": 7708,
+"id": "jenkins-slave"
+        },
+      {
+"host": 53,
+"guest": 53,
+"id": "dhcp"
+        },
+      {
+"host": 67,
+"guest": 67,
+"id": "dns"
+        }
+
+      ],
+"memory": 2048,
+"cpus":1,
+"script_path":"./scripts/drivervm.sh"
+    },
+"dbs": {
+"node": "jenkinsVM",
+"ip": "10.147.28.145",
+"host": "jenkins.automation.hyd.com",
+"mac":"00:16:3e:6d:cb:51",
+"ports": [
+        {
+"host": 2202,
+"guest": 23,
+"id": "ssh"
+        },
+        {
+"host": 1529,
+"guest": 8080,
+"id": "jenkins-server-port"
+        }
+      ],
+"memory": 1024,
+"cpus":1,
+"script_path":"./scripts/jenkinsvm.sh"
+    },
+"nfs": {
+"node": "nfsVM",
+"ip": "10.147.28.146",
+"host": "nfs.automation.hyd.com",
+"mac": "00:16:3e:20:8c:29",
+"ports": [
+        {
+"host": 2203,
+"guest": 24,
+"id": "ssh"
+        },
+        {
+"host": 4756,
+"guest": 4756,
+"id": "nfs-server"
+        }
+      ],
+"memory": 1024,
+"cpus":1,
+"script_path":"./scripts/nfsvm.sh"
+    }
+  }
+}
