@@ -1,0 +1,41 @@
+{
+ hosts: {
+         kvm1:{ 
+               'ipmi_username':'root',
+               'ipmi_password':'calvin',
+               'ipmi_ip':'10.147.42.15',
+               'mac':'d4:ae:52:cb:99:f4',
+               'gateway':'10.147.28.1',
+               'netmask':'255.255.255.0',
+               'ip':10.147.28.14'
+             },
+
+         kvm2:{ 
+               'ipmi_username':'root',
+               'ipmi_password':'calvin',
+               'ipmi_ip':'10.147.42.20',
+               'mac':'d4:ae:52:cb:99:a3',
+               'gateway':'10.147.28.1',
+               'netmask':'255.255.255.0',
+               'ip':10.147.28.15'
+              }
+        },
+centosImage: {
+               'download_url':'',
+               'mount_url':'nfs://10.147.28.7:/ISO/Centos6.3.iso'
+             },
+
+repos: { 
+        'epel_centos6': {
+             'url':"http://epel.mirror.net.in/epel/6/x86_64/"
+        }
+     } 
+systemvm_templates: {
+            '1':{
+                  'branch':'master',
+                  'download_url':'10.147.28.7/systemvmtemplates/systevmtemplate45.qcow2',
+                  'hypervisor_type':'kvm',
+                 }          
+     }
+}
+

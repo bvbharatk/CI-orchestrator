@@ -34,6 +34,11 @@ Vagrant.configure("2") do |config|
         #    id:    port['id']
         #end
         config.vm.network :public_network, :dev=>'br0', :mode => 'bridge', :type =>'bridge', :mac => node_values['mac']
+        config.vm.provision "shell" do |s|
+          s.inline = "sudo /home/vagrant/sync/scripts/configure_network_interface.sh $1 $2 $3 $4 $5"
+          s.args = ['eth1', node_values['mac'], node_values['ip'], node_values['netmask'], node_values['gateway'] ]
+        end 
+        #config.vm.provision "shell", path: "./scripts/install_common_dependencies.py"
         config.vm.provision "shell", path: node_values['script_path']
     end
   end   
