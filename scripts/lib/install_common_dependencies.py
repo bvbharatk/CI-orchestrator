@@ -35,7 +35,13 @@ class commonDepsInstaller():
          self.checkForSuccess(bash("pip install --upgrade pip"))
          self.logger.info("installing cheeta templating engine")
          self.checkForSuccess(bash("pip install cheetah"))
+    
+     def setupSshKeys(self):
+         self.logger.info("setting up ssh keypairs")
+         self.checkForSuccess(bash("cat %s >> /home/vagrant/.ssh/authorized_keys"%(os.path.join(currentDir,"sshkeys","id_rsa.ci.pub")))) 
+         self.checkForSuccess(bash("cp %s /home/vagrant/.ssh/."%(os.path.join(currentDir,"sshkeys","id_rsa.ci"))))
 
 if __name__=="__main__":
    installer=commonDepsInstaller()
    installer.install()
+   installer.setupSshKeys()

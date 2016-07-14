@@ -45,7 +45,7 @@ class jenkinsConfigurator():
           f=open(os.path.join(path,'getpasswd.py'),'r')
           script=f.read()
           passwd=Jenkins.run_script(script)
-          self.checkForSuccess(bash("sed -i 's~<password>.*</password>~<password>%s</password>~' %s"%(passwd, os.path.join(path,'credentials.xml')))) 
+          self.checkForSuccess(bash("sed -i 's~<password>.*</password>~<password>%s</password>~' %s"%(passwd.strip('\n'), os.path.join(path,'credentials.xml')))) 
  
       def restartJenkins(self):
           self.checkForSuccess(bash("service jenkins restart"))
@@ -115,12 +115,8 @@ class jenkinsConfigurator():
                    'host':self.config['nodes']['driverVM']['ip'] 
           }
           self.addPasswdToCredential(j,"vagrant")
-          self.checkForSuccess(bash("cp %s /var/lib/jenkins/."%(os.path.join(currentDir,jenkins_credentials,credentials.xml))))
-          self.checkForSuccess(bash("service jenkins restart"))
-          self.logger.info("wating for some time untill jenkins restarts")
-          time.sleep(20)
+          self.checkForSuccess(bash("cp %s /var/lib/jenkins/."%(os.path.join(currentDir,"jenkins_credentials","credentials.xml"))))
           j.create_node('driverVM', numExecutors=20, nodeDescription="CI slave VM", remoteFS='/automation/jenkins', labels='driverVM', exclusive=True,launcher=jenkins.LAUNCHER_SSH, launcher_params=params) 
-          self.checkForSuccess(bash("service jenkins restart"))
           self.logger.info("jenkins install complete")
           
          

@@ -10,6 +10,8 @@ sys.path.append(os.path.join(currentDir,"lib"))
 import logging
 from bashUtils import bash
 
+logging.basicConfig(format='%(asctime)s %(levelname)s  %(name)s %(lineno)d  %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p',level=logging.INFO)
+
 class nfsVM():
     def __init__(self):
         self.logger=logging.getLogger("nfsVM")
@@ -27,5 +29,8 @@ class nfsVM():
         self.logger.info("installing nfs server")
         self.checkForSuccess(bash("sh %s server"%(os.path.join(currentDir, "install_nfs.sh"))))
         self.logger.info("adding mount point info to driverVM") 
-        self.checkForSuccess(bash("ssh vagrant@%s '%s'"%(self.config['nodes']['driverVM']['ip'], "sh /home/vagrant/sync/script/lib/insert_driverVM_default_mounts.sh"))) 
+        self.checkForSuccess(bash("ssh -o StrictHostKeyChecking=no vagrant@%s '%s'"%(self.config['nodes']['driverVM']['ip'], "sh /home/vagrant/sync/script/lib/insert_driverVM_default_mounts.sh"))) 
 
+if __name__=="__main__":
+  nfsvm=nfsVM()
+  nfsvm.installNfs()

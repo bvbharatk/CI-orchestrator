@@ -26,7 +26,7 @@ class driverVmConfigurator:
           self.database="resource_db"
 
       def loadJson(self,filePath):
-          f=open(ConfigFilePath,'r')
+          f=open(filePath,'r')
           content=f.read()
           f.close()
           return json.loads(content)
@@ -36,7 +36,7 @@ class driverVmConfigurator:
               raise Exception("Failed to execute commmand %s, Error message %s"%(bashObj.args,bashObj.getErrMsg()))
       
       def downLoadTonfs(self, url):
-          self.checkForSuccess(bash("ssh vagrant@%s 'wget -O /var/exports/iso/ %s'"%(self.config['nodes']['nfsVM']['ip'], url)))
+          self.checkForSuccess(bash("ssh -o StrictHostKeyChecking=no vagrant@%s 'wget -O /var/exports/iso/ %s'"%(self.config['nodes']['nfs']['ip'], url)))
      
       def importDistroFromMountPt(self, mounturl):
           self.checkForSuccess(bash("mount -t nfs %s %s"%(mounturl.replace("nfs://",""), "/media")))
@@ -57,7 +57,7 @@ class driverVmConfigurator:
           self.logger.info("importing distros and creating profiles")
           if len(self.ci_config['centosImage']['download_url']) > 0:
                 self.downLoadTonfs(self.ci_config['centosImage']['download_url'])
-                mounturl="nfs://%s:/var/export/iso/%s"%(self.config['nodes']['nfsVM']['ip'], "/".join(self.ci_config['centosImage']['download_url'].split("/")[-2:]))       
+                mounturl="nfs://%s:/var/export/iso/%s"%(self.config['nodes']['nfs']['ip'], "/".join(self.ci_config['centosImage']['download_url'].split("/")[-2:]))       
           else:
               mounturl=self.ci_config['centosImage']['mount_url']
           self.importDistroFromMountPt(mounturl)

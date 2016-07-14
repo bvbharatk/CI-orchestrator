@@ -25,7 +25,7 @@ class driverVm:
           self.ci_config=self.loadJson(os.path.join(os.sep.join(currentDir.split(os.sep)[:-2]),"ci_config"))
  
       def loadJson(self,filePath):
-          f=open(ConfigFilePath,'r')
+          f=open(filePath,'r')
           content=f.read()
           f.close()
           return json.loads(content)
@@ -100,9 +100,10 @@ class driverVm:
           self.checkForSuccess(bash("rpm -ivh mysql-community-release-el7-5.noarch.rpm"))
           self.checkForSuccess(bash("yum install -y mysql-server"))
           self.checkForSuccess(bash("yum install -y mysql-devel"))
+          self.checkForSuccess(bash("systemctl enable mysqld && service mysqld start"))
           self.checkForSuccess(bash("pip install -r %s"%(os.path.join(currentDir,"ci_requirements.txt"))))
           self.checkForSuccess(bash("mkdir -p /root/cloud-autodeploy/"))
-          self.checkForSuccess(bash("sh %s"%(currentDir, "install_nfs.sh"))) 
+          self.checkForSuccess(bash("sh %s"%(os.path.join(currentDir, "install_nfs.sh")))) 
           self.checkForSuccess(bash("yum install -y git"))
           os.chdir("/root/cloud-autodeploy")
           self.checkForSuccess(bash("git clone %s"%(self.ci_git_url)))
