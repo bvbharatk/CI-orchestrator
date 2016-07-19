@@ -36,10 +36,15 @@ class driverVm:
 
       def installCobbler(self):
           self.logger.info("begining cobbler install")
-          self.checkForSuccess(bash("yum -y install cobbler cobbler-web dnsmasq syslinux pykickstart"))
+          self.checkForSuccess(bash("yum -y install cobbler cobbler-web dhcp bind xinetd selinux-policy-devel syslinux pykickstart"))
+          self.checkForSuccess(bash("semanage permissive -a cobblerd_t"))
+          self.checkForSuccess(bash("sed -i 's~disable.*~disable                 = no~' /etc/xinetd.d/tftp"))
+          self.checkForSuccess(bash("systemctl enable xinetd && systemctl enable rsyncd"))
           self.checkForSuccess(bash("systemctl enable cobblerd && systemctl start cobblerd"))
+          self.checkForSuccess(bash("systemctl start xinetd && systemctl start rsyncd")) 
           bash("ln -s '/usr/lib/systemd/system/httpd.service' '/etc/systemd/system/multi-user.target.wants/httpd.service")
           self.checkForSuccess(bash("systemctl enable httpd && systemctl start httpd"))
+          self.checkForSuccess(bash("systemctl restart cobblerd"))
           self.logger.info("Cobbler install complete")
       
       def installPuppet(self):
@@ -104,6 +109,7 @@ class driverVm:
           self.checkForSuccess(bash("pip install -r %s"%(os.path.join(currentDir,"ci_requirements.txt"))))
           self.checkForSuccess(bash("mkdir -p /root/cloud-autodeploy/"))
           self.checkForSuccess(bash("sh %s"%(os.path.join(currentDir, "install_nfs.sh")))) 
+          self.checkForSuccess(bash("mkdir -p /automation/jenkins"))
           self.checkForSuccess(bash("yum install -y git"))
           os.chdir("/root/cloud-autodeploy")
           self.checkForSuccess(bash("git clone %s"%(self.ci_git_url)))

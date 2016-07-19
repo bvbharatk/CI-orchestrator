@@ -6,4 +6,5 @@ parameterized-trigger
 throttle-concurrents
 rebuild
 jobConfigHistory
+ssh-credentials
 ssh-slaves

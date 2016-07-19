@@ -4,6 +4,7 @@ import sys
 import json
 from inspect import getsourcefile
 import MySQLdb
+from urlparse import urlparse
 
 currentDir=os.path.dirname(os.path.abspath(getsourcefile(lambda _:0)))
 sys.path.append(os.path.join(currentDir,"lib"))
@@ -36,11 +37,23 @@ class driverVmConfigurator:
               raise Exception("Failed to execute commmand %s, Error message %s"%(bashObj.args,bashObj.getErrMsg()))
       
       def downLoadTonfs(self, url):
-          self.checkForSuccess(bash("ssh -o StrictHostKeyChecking=no vagrant@%s 'wget -O /var/exports/iso/ %s'"%(self.config['nodes']['nfs']['ip'], url)))
-     
-      def importDistroFromMountPt(self, mounturl):
-          self.checkForSuccess(bash("mount -t nfs %s %s"%(mounturl.replace("nfs://",""), "/media")))
-          self.checkForSuccess(bash("cobbler distro import --name=CentosDef --path=/media"))
+          u=urlparse(url)
+          self.checkForSuccess(bash("ssh -i /home/vagrant/.ssh/id_rsa.ci -o StrictHostKeyChecking=no vagrant@%s 'wget -O /var/export/iso/%s %s'"%(self.config['nodes']['nfs']['ip'], u.path.split(os.sep)[-1:],  url)))
+    
+      def getMountPt(self):
+          rstring=''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(6)) 
+          self.checkForSuccess(bash("mkdir -p /tmp/%s"%rstring))
+          return os.path.join("/tmp",rstring)
+
+      def importDistroFromMountPt(self, mounturl, filename):
+          mountPt=self.getMountPt 
+          try:
+             self.checkForSuccess(bash("mount -t nfs %s %s"%(mounturl.replace("nfs://",""), "/media")))
+             self.checkforSuccess(bash("mount -o loop /media/%s %s"%(filename, mountPt)))
+             self.checkForSuccess(bash("cobbler import %s --name=CentosDef"%mountPt))
+          finally:
+              bash("umount /media")
+              bash("umount %s"%mountPt) 
       
       def cobblerAddReposToProfiles(self, repolist):
           result=bash("cobbler profile list")
@@ -54,6 +67,7 @@ class driverVmConfigurator:
   
       def configureCobbler(self):
           self.logger.info("configuring cobbler")
+          self.checkForSuccess(bash("cobbler get-loaders"))
           self.logger.info("importing distros and creating profiles")
           if len(self.ci_config['centosImage']['download_url']) > 0:
                 self.downLoadTonfs(self.ci_config['centosImage']['download_url'])

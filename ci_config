@@ -21,8 +21,7 @@
 		}
 	},
 	"centosImage": {
-		"download_url": "http://10.147.28.7/ISO/CentOS/CentOS-6.3-x64.iso",
-		"mount_url": ""
+		"download_url": "http://10.147.28.7/ISO/CentOS/CentOS-6.3-x64.iso"
 	},
 
 	"repos": {

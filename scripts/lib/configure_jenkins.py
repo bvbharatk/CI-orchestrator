@@ -30,7 +30,7 @@ class jenkinsConfigurator():
                    break
                 else:
                   self.logger.info("wating for jenkins to setup the password file")
-                  time.sleep(10)
+                  time.sleep(30)
           f=open(initialPasswdFile,'r')
           self.jenkinsPasswd=f.read()
           self.jenkinsPasswd=self.jenkinsPasswd.replace("\n","")
@@ -46,10 +46,34 @@ class jenkinsConfigurator():
           script=f.read()
           passwd=Jenkins.run_script(script)
           self.checkForSuccess(bash("sed -i 's~<password>.*</password>~<password>%s</password>~' %s"%(passwd.strip('\n'), os.path.join(path,'credentials.xml')))) 
- 
+      
+      def installPlugins(self, Jenkins, pluginsToInstall):
+          plugins=Jenkins.get_plugins()
+          currentPluginList=[]
+          for k,v in plugins.keys():
+              currentPluginList.append(k)
+          installedPluginList=[]
+          installedPluginList.append("startVal")
+          while len(installedPluginList) > 0:      
+               installedPluginList=[]
+               for plugin in pluginsToInstall:
+                   if(len(plugin)==0):
+                     pass
+                   else:
+                     print "trying to install plugin %s"%plugin
+                     Jenkins.install_plugin(plugin,True)
+               time.sleep(60)
+               self.restartJenkins()
+               plugins=Jenkins.get_plugins()
+               for k,v in plugins.keys():
+                   if k not in currentPluginList:
+                      installedPluginList.append(k)
+                      currentPluginList.append(k)
+               print "set diff", installedPluginList    
+
       def restartJenkins(self):
           self.checkForSuccess(bash("service jenkins restart"))
-          retry=3
+          retry=20
           while retry > 0:
             retry-=1
             try:
@@ -60,8 +84,8 @@ class jenkinsConfigurator():
                  if retry==0:
                     self.logger.info("Failed to restart jenkins")  
                  else:
-                    time.sleep(10)
-                    self.logger.info("waiting for jenkins to restart")
+                    time.sleep(20)
+                    self.logger.info("waiting for jenkins to restart, this may take a while")
 
       def configure(self):
           #self.logger.info("setting jenkins authentication method to use unix userdata")
@@ -84,11 +108,7 @@ class jenkinsConfigurator():
           f=open('%s/jenkins_plugins.txt'%currentDir, 'r')
           pluginsToInstall=f.read()  
           pluginsToInstall=pluginsToInstall.split('\n')
-          for plugin in pluginsToInstall:
-              if(len(plugin)==0):
-                pass
-              else:
-                 j.install_plugin(plugin,True)
+          self.installPlugins(j,pluginsToInstall)
           self.logger.info("Plugin installation complete")
           self.logger.info("restarting jenkins")
           self.restartJenkins()

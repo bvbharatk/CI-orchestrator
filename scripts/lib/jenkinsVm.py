@@ -31,7 +31,7 @@ class jenkins():
           self.logger.info("jenkins install complete")
     
       def config(self):
-          self.logger.info("jenkins configuring jenkins")
+          self.logger.info("configuring jenkins")
           self.checkForSuccess(bash("python %s"%(os.path.join(currentDir,"configure_jenkins.py"))))
      
       

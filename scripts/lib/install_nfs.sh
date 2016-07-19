@@ -13,12 +13,14 @@ input=$1
 if [ ! -z "${input// }" -a "$1" == "server" ];
 then
        mkdir /var/export
-       chmod -R 777 /var/nfsshare/
        sed -i 's~/var/export.*~~g' /etc/exports
        echo "/var/export *(rw,sync,no_root_squash,no_all_squash)" >> /etc/exports
        mkdir -p /var/export/automation/Automation-distros/repo_mirror
        mkdir -p /var/export/automation/virtenv
        mkdir -p /var/export/test_result_archive
+       mkdir -p /var/export/iso
+       mkdir -p /var/export/templates
+       chmod -R 777 /var/export/
        systemctl restart nfs-server 
 fi
 
