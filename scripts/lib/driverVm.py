@@ -73,7 +73,7 @@ class driverVm:
           dhcp_conf.driver_vm_gateway=self.config['nodes']['driverVM']['gateway']
           dhcp_conf.driver_vm_ip=self.config['nodes']['driverVM']['ip']
           dhcp_conf.domain="*."+".".join(self.config['nodes']['driverVM']['hostname'].split(".")[1:])
-          f=open('/etc/cobbler/dhcpd.template', 'w')
+          f=open('/etc/cobbler/dhcp.template', 'w')
           print >> f, dhcp_conf
           f.close()
           self.logger.info("configuring cobbler named template")
