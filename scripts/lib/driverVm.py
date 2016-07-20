@@ -38,6 +38,7 @@ class driverVm:
           self.logger.info("begining cobbler install")
           self.checkForSuccess(bash("yum -y install cobbler cobbler-web dhcp bind xinetd selinux-policy-devel syslinux pykickstart"))
           self.checkForSuccess(bash("semanage permissive -a cobblerd_t"))
+          self.checkForSuccess(bash("sudo semanage permissive -a httpd_t"))
           self.checkForSuccess(bash("sed -i 's~disable.*~disable                 = no~' /etc/xinetd.d/tftp"))
           self.checkForSuccess(bash("systemctl enable xinetd && systemctl enable rsyncd"))
           self.checkForSuccess(bash("systemctl enable cobblerd && systemctl start cobblerd"))
