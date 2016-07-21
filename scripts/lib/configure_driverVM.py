@@ -5,6 +5,8 @@ import json
 from inspect import getsourcefile
 import MySQLdb
 from urlparse import urlparse
+import random
+import string
 
 currentDir=os.path.dirname(os.path.abspath(getsourcefile(lambda _:0)))
 sys.path.append(os.path.join(currentDir,"lib"))
@@ -38,22 +40,23 @@ class driverVmConfigurator:
       
       def downLoadTonfs(self, url):
           u=urlparse(url)
-          self.checkForSuccess(bash("ssh -i /home/vagrant/.ssh/id_rsa.ci -o StrictHostKeyChecking=no vagrant@%s 'wget -O /var/export/iso/%s %s'"%(self.config['nodes']['nfs']['ip'], u.path.split(os.sep)[-1:],  url)))
+          self.checkForSuccess(bash("ssh -i /home/vagrant/.ssh/id_rsa.ci -o StrictHostKeyChecking=no vagrant@%s 'wget -O /var/export/iso/%s %s'"%(self.config['nodes']['nfs']['ip'], u.path.split(os.sep)[-1:][0],  url)))
     
       def getMountPt(self):
           rstring=''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(6)) 
-          self.checkForSuccess(bash("mkdir -p /tmp/%s"%rstring))
-          return os.path.join("/tmp",rstring)
+          self.checkForSuccess(bash("mkdir  /home/vagrant/sync/%s"%rstring))
+          return os.path.join("/home/vagrant/sync",rstring)
 
       def importDistroFromMountPt(self, mounturl, filename):
-          mountPt=self.getMountPt 
+          mountPt1=self.getMountPt() 
+          mountPt2=self.getMountPt()
           try:
-             self.checkForSuccess(bash("mount -t nfs %s %s"%(mounturl.replace("nfs://",""), "/media")))
-             self.checkforSuccess(bash("mount -o loop /media/%s %s"%(filename, mountPt)))
-             self.checkForSuccess(bash("cobbler import %s --name=CentosDef"%mountPt))
+             self.checkForSuccess(bash("mount -t nfs %s %s"%(mounturl, mountPt1)))
+             self.checkForSuccess(bash("mount -o loop %s %s"%(os.path.join(mountPt1,filename), mountPt2)))
+             self.checkForSuccess(bash("cobbler import %s --name=CentosDef"%mountPt2))
           finally:
-              bash("umount /media")
-              bash("umount %s"%mountPt) 
+              bash("umount %s"%mountPt1)
+              bash("umount %s"%mountPt2) 
       
       def cobblerAddReposToProfiles(self, repolist):
           result=bash("cobbler profile list")
@@ -69,12 +72,14 @@ class driverVmConfigurator:
           self.logger.info("configuring cobbler")
           self.checkForSuccess(bash("cobbler get-loaders"))
           self.logger.info("importing distros and creating profiles")
+          filename=""
           if len(self.ci_config['centosImage']['download_url']) > 0:
                 self.downLoadTonfs(self.ci_config['centosImage']['download_url'])
-                mounturl="nfs://%s:/var/export/iso/%s"%(self.config['nodes']['nfs']['ip'], "/".join(self.ci_config['centosImage']['download_url'].split("/")[-2:]))       
+                mounturl="%s:/var/export/iso/"%(self.config['nodes']['nfs']['ip'])       
+                filename=urlparse(self.ci_config['centosImage']['download_url']).path.split(os.sep)[-1:][0]
           else:
               mounturl=self.ci_config['centosImage']['mount_url']
-          self.importDistroFromMountPt(mounturl)
+          self.importDistroFromMountPt(mounturl, filename)
           self.cobblerAddRepos()
           self.cobblerAddReposToProfiles(self.ci_config['repos'].keys())
           self.checkForSuccess(bash("cobbler sync"))
