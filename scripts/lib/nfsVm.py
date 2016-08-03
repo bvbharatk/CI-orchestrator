@@ -29,7 +29,7 @@ class nfsVM():
         self.logger.info("installing nfs server")
         self.checkForSuccess(bash("sh %s server"%(os.path.join(currentDir, "install_nfs.sh"))))
         self.logger.info("adding mount point info to driverVM") 
-        self.checkForSuccess(bash("ssh -i /home/vagrant/.ssh/id_rsa.ci -o StrictHostKeyChecking=no vagrant@%s '%s'"%(self.config['nodes']['driverVM']['ip'], "sudo sh /home/vagrant/sync/scripts/lib/insert_driverVM_default_mounts.sh"))) 
+        self.checkForSuccess(bash("sudo ssh -i /home/vagrant/.ssh/id_rsa.ci -o StrictHostKeyChecking=no vagrant@%s '%s'"%(self.config['nodes']['driverVM']['ip'], "sudo mount -a"))) 
 
 if __name__=="__main__":
   nfsvm=nfsVM()

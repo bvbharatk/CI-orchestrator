@@ -53,7 +53,7 @@ class driverVmConfigurator:
           try:
              self.checkForSuccess(bash("mount -t nfs %s %s"%(mounturl, mountPt1)))
              self.checkForSuccess(bash("mount -o loop %s %s"%(os.path.join(mountPt1,filename), mountPt2)))
-             self.checkForSuccess(bash("cobbler import %s --name=CentosDef"%mountPt2))
+             self.checkForSuccess(bash("cobbler import  --name=CentosDef --path=%s"%mountPt2))
           finally:
               bash("umount %s"%mountPt1)
               bash("umount %s"%mountPt2) 
@@ -61,12 +61,12 @@ class driverVmConfigurator:
       def cobblerAddReposToProfiles(self, repolist):
           result=bash("cobbler profile list")
           if result.stdout!=None:
-             for profile in result.split('\n'):
-                 bash("cobbler profile edit --name=%s --repos='%s'"%(profile, " ".join(repolist)))
+             for profile in result.stdout.split('\n'):
+                 bash("cobbler profile edit --name=%s --repos='%s'"%(profile.replace(" ",""), " ".join(repolist)))
        
       def cobblerAddRepos(self):
           for repo in self.ci_config['repos'].keys():
-              self.checkForSuccess(bash("cobbler repo add --name=%s --mirror=%s --mirror-locally=N"%(repo, self.ci_config[repo]['url'])))
+              self.checkForSuccess(bash("cobbler repo add --name=%s --mirror=%s --mirror-locally=N"%(repo, self.ci_config['repos'][repo]['url'])))
   
       def configureCobbler(self):
           self.logger.info("configuring cobbler")
@@ -84,8 +84,12 @@ class driverVmConfigurator:
           self.cobblerAddReposToProfiles(self.ci_config['repos'].keys())
           self.checkForSuccess(bash("cobbler sync"))
      
-      def importDatabase(self):
-          self.checkForSuccess("mysql -u root < %s/CI_db.sql"%(currentDir))
+      def importDataBase(self):
+          self.checkForSuccess(bash("mysql -uroot -e 'create database resource_db'"))
+          self.checkForSuccess(bash("mysql -uroot resource_db < %s/CI_db.sql"%(currentDir)))
+      
+      def addMounts(self):
+          self.checkForSuccess(bash("sudo sh insert_driverVM_default_mounts.sh"))
 
       def populateDataBase(self):
           self.logger.info("populating static host info")
@@ -102,5 +106,6 @@ class driverVmConfigurator:
 if __name__=='__main__':
   configurator=driverVmConfigurator()
   configurator.configureCobbler()
+  configurator.addMounts()
   configurator.importDataBase()
   configurator.populateDataBase()              
